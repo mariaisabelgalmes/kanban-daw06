@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban DAW06 - Gestión de tareas</title>
+  <meta name="description" content="Aplicación web de gestión de tareas tipo Kanban desarrollada con HTML, CSS y JavaScript.">
+  <link rel="stylesheet" href="css/estils.css">
+  <script type="module" src="./js/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <p class="eyebrow">DAW06 · Práctica Kanban</p>
+      <h1>Gestor de tareas Kanban</h1>
+      <p class="header-text">
+        Aplicación web para crear, editar, eliminar, filtrar y organizar tareas en un tablero Kanban
+        con persistencia local en el navegador.
+      </p>
+    </div>
+  </header>
+
+  <main class="container app-layout">
+    <aside class="sidebar">
+      <section class="panel filters-panel" aria-labelledby="filters-section-title">
+        <div class="panel-header">
+          <h2 id="filters-section-title">Filtros y búsqueda</h2>
+          <p class="panel-text">
+            Puedes combinar filtros por estado, prioridad y búsqueda por texto.
+          </p>
+        </div>
+
+        <div class="filters-grid">
+          <div class="form-group">
+            <label for="filter-status">Filtrar por estado</label>
+            <select id="filter-status" name="filter-status">
+              <option value="all">Todos</option>
+              <option value="todo">Por hacer</option>
+              <option value="inProgress">En curso</option>
+              <option value="done">Hecho</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="filter-priority">Filtrar por prioridad</label>
+            <select id="filter-priority" name="filter-priority">
+              <option value="all">Todas</option>
+              <option value="low">Baja</option>
+              <option value="medium">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="search-text">Buscar por texto</label>
+            <input
+              type="search"
+              id="search-text"
+              name="search-text"
+              placeholder="Busca en el título y la descripción"
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <div class="form-actions filters-actions">
+          <button type="button" id="clear-filters-button" class="btn btn-secondary">Restablecer filtros</button>
+        </div>
+      </section>
+
+      <section class="panel form-panel" aria-labelledby="form-section-title">
+        <div class="panel-header">
+          <h2 id="form-section-title">Crear / editar tarea</h2>
+          <p class="panel-text">
+            Completa el formulario para añadir una nueva tarea o modificar una existente.
+          </p>
+        </div>
+
+        <form id="task-form" novalidate>
+          <div class="form-group">
+            <label for="title">Título *</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              maxlength="100"
+              placeholder="Ej.: Preparar presentación del proyecto"
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea
+              id="description"
+              name="description"
+              rows="4"
+              maxlength="500"
+              placeholder="Describe la tarea con un poco más de detalle"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="priority">Prioridad</label>
+              <select id="priority" name="priority">
+                <option value="low">Baja</option>
+                <option value="medium" selected>Media</option>
+                <option value="high">Alta</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="dueDate">Fecha límite</label>
+              <input type="date" id="dueDate" name="dueDate">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="status">Estado inicial</label>
+            <select id="status" name="status">
+              <option value="todo" selected>Por hacer</option>
+              <option value="inProgress">En curso</option>
+              <option value="done">Hecho</option>
+            </select>
+          </div>
+
+          <div class="form-actions form-buttons">
+            <button type="submit" id="submit-button" class="btn btn-primary">Añadir tarea</button>
+            <button type="button" id="cancel-edit-button" class="btn btn-secondary hidden">Cancelar edición</button>
+            <button type="button" id="clear-form-button" class="btn btn-ghost">Limpiar formulario</button>
+          </div>
+
+          <p id="form-error" class="form-message error-message" aria-live="polite"></p>
+          <p id="form-success" class="form-message success-message" aria-live="polite"></p>
+        </form>
+      </section>
+    </aside>
+
+    <section class="board-section" aria-labelledby="board-title">
+      <div class="board-header">
+        <div>
+          <h2 id="board-title">Tablero Kanban</h2>
+          <p class="panel-text">
+            Las tareas visibles se muestran en la columna correspondiente según su estado.
+          </p>
+        </div>
+      </div>
+
+      <section class="stats-panel-mini" aria-labelledby="stats-section-title">
+        <div class="stats-mini-header">
+          <div>
+            <h2 id="stats-section-title">Progreso global</h2>
+            <p class="progress-hint">
+              <strong id="stat-done">0</strong> de <strong id="stat-total">0</strong> tareas completadas en total
+            </p>
+          </div>
+
+          <div class="completion-summary">
+            <span id="stat-percent" class="completion-percent">0%</span>
+            <span class="completion-label">completadas</span>
+          </div>
+        </div>
+
+        <div class="progress-track" aria-label="Progreso de tareas completadas">
+          <div id="stat-progress-bar" class="progress-fill"></div>
+        </div>
+
+        <p class="sr-only">
+          Por hacer: <span id="stat-todo">0</span>.
+          En curso: <span id="stat-in-progress">0</span>.
+        </p>
+      </section>
+
+      <section class="kanban-board" id="kanban-board" aria-label="Tablero Kanban con tres columnas">
+        <article class="kanban-column status-todo">
+          <header class="column-header">
+            <div>
+              <h3>Por hacer</h3>
+              <p class="column-subtitle">Tareas pendientes de iniciar</p>
+            </div>
+            <span id="count-todo" class="column-count">0</span>
+          </header>
+          <div id="column-todo" class="task-list" aria-label="Columna Por hacer"></div>
+        </article>
+
+        <article class="kanban-column status-progress">
+          <header class="column-header">
+            <div>
+              <h3>En curso</h3>
+              <p class="column-subtitle">Tareas en desarrollo</p>
+            </div>
+            <span id="count-in-progress" class="column-count">0</span>
+          </header>
+          <div id="column-in-progress" class="task-list" aria-label="Columna En curso"></div>
+        </article>
+
+        <article class="kanban-column status-done">
+          <header class="column-header">
+            <div>
+              <h3>Hecho</h3>
+              <p class="column-subtitle">Tareas finalizadas</p>
+            </div>
+            <span id="count-done" class="column-count">0</span>
+          </header>
+          <div id="column-done" class="task-list" aria-label="Columna Hecho"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Práctica DAW06 · Aplicación Kanban con HTML, CSS y JavaScript vanilla · Preparada para GitHub Pages</p>
+    </div>
+  </footer>
+</body>
+</html>
